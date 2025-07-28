@@ -23,6 +23,7 @@ font pango:Meslo LGM Nerd Font 8
 # https://wiki.archlinux.org/index.php/XDG_Autostart
 exec --no-startup-id dex --autostart --environment i3
 exec_always --no-startup-id xrandr --output HDMI-0 --mode 1920x1080 --rate 75
+exec_always --no-startup-id picom
 exec_always --no-startu-id setxkbmap -option caps:escape
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
 # they are included here as an example. Modify as you see fit.
