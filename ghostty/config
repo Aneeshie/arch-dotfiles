@@ -6,3 +6,6 @@ gtk-titlebar = false
 shell-integration = none
 cursor-style="block"
 confirm-close-surface = false
+
+
+
