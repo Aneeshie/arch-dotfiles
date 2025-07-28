@@ -1,0 +1,13 @@
+#ignore electron bs
+discord/
+spotify/
+Electron/
+go/
+pulse/
+spotify/
+yay/
+systemd/
+gh/
+
+
+pavucontrol.ini
