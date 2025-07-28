@@ -1,4 +1,4 @@
-#  Arch Dotfiles Setup
+#  Arch Dotfiles Setup (GruvBox Themed)
 
 > Personal Arch Linux dotfiles setup script -->> includes a full power-user experience with i3, Ghostty, Polybar, Tmux, Zsh (oh-my-zsh), and more.
 
