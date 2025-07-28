@@ -5,5 +5,7 @@ font-family = Meslo LGS Nerd Font Mono
 font-size = 16
 background-opacity = 0.95
 gtk-titlebar = false
+shell-integration = none
+cursor-style="block"
 # custom-shader = /home/chris/bloom.glsl
 #custom-shader = /home/chris/crt.glsl
