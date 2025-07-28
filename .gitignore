@@ -8,6 +8,8 @@ spotify/
 yay/
 systemd/
 gh/
+dconf/
+gtk-3.0/
 
 
 pavucontrol.ini

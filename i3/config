@@ -27,7 +27,7 @@ exec --no-startup-id picom
 exec_always --no-startu-id setxkbmap -option caps:escape
 exec_always killall polybar
 exec_always --no-startup-id ~/.config/polybar/launch_polybar.sh
-
+exec_always --no-startup-id feh --bg-scale ~/.config/gruvbox-wallpaper.png
 
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
 # they are included here as an example. Modify as you see fit.
