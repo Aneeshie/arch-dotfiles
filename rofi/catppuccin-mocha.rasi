@@ -1,14 +1,21 @@
+/**
+ * CATPPUCCIN MOCHA THEME FOR ROFI
+ * Productivity-focused with keyboard accessibility
+ */
+
 * {
+    /* Catppuccin Mocha Color Palette */
     bg-col:  #1e1e2e;
-    bg-col-light: #1e1e2e;
-    border-col: #1e1e2e;
-    selected-col: #1e1e2e;
+    bg-col-light: #313244;
+    border-col: #cba6f7;
+    selected-col: #45475a;
     blue: #89b4fa;
     fg-col: #cdd6f4;
     fg-col2: #f38ba8;
     grey: #6c7086;
-    width: 600;
-    font: "JetBrainsMono Nerd Font 18";
+    
+    width: 700;
+    font: "MesloLGS Nerd Font Mono 12";
 }
 
 element-text, element-icon , mode-switcher {
