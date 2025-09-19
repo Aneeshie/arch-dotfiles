@@ -286,6 +286,8 @@ if ! git config --global user.name &> /dev/null; then
 fi
 
 print_header "Creating desktop entry for i3..."
+# Create autostart directory if it doesn't exist
+mkdir -p ~/.config/autostart
 cat > ~/.config/autostart/productivity-setup.desktop << EOF
 [Desktop Entry]
 Type=Application
