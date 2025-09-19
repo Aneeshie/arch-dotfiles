@@ -39,6 +39,45 @@ if ! command -v pacman &> /dev/null; then
     exit 1
 fi
 
+# Check if we have sudo access
+if ! sudo -n true 2>/dev/null; then
+    print_error "This script requires sudo access. Please ensure your user is in the sudo/wheel group."
+    exit 1
+fi
+
+print_header "Installing essential prerequisites for minimal Arch..."
+# Install base-devel and essential tools first
+sudo pacman -S --needed --noconfirm base-devel git wget curl unzip sudo
+
+# Install X11 and basic graphics if not present
+sudo pacman -S --needed --noconfirm xorg-server xorg-xinit xorg-xauth xorg-xrandr
+
+# Install networking tools if not present (common on minimal installs)
+sudo pacman -S --needed --noconfirm networkmanager network-manager-applet
+
+# Enable NetworkManager if not already enabled
+if ! systemctl is-enabled NetworkManager &>/dev/null; then
+    print_status "Enabling NetworkManager..."
+    sudo systemctl enable NetworkManager
+    sudo systemctl start NetworkManager
+fi
+
+# Install audio support
+sudo pacman -S --needed --noconfirm pulseaudio pulseaudio-alsa pavucontrol
+
+# Install yay AUR helper if not present (essential for many packages)
+if ! command -v yay &> /dev/null; then
+    print_header "Installing yay AUR helper..."
+    cd /tmp
+    git clone https://aur.archlinux.org/yay.git
+    cd yay
+    makepkg -si --noconfirm
+    cd - > /dev/null
+    print_status "yay AUR helper installed successfully"
+else
+    print_status "yay AUR helper already installed"
+fi
+
 print_header "Installing core system packages..."
 sudo pacman -S --needed --noconfirm \
   i3-wm \
@@ -83,6 +122,43 @@ sudo pacman -S --needed --noconfirm \
   bat \
   exa \
   diff-so-fancy || print_warning "Some productivity tools may not be available"
+
+print_header "Installing and configuring SDDM display manager..."
+sudo pacman -S --needed --noconfirm sddm qt5-graphicaleffects qt5-quickcontrols2 qt5-svg
+
+# Enable SDDM service
+if ! systemctl is-enabled sddm &>/dev/null; then
+    print_status "Enabling SDDM service..."
+    sudo systemctl enable sddm
+else
+    print_status "SDDM service already enabled"
+fi
+
+# Install Catppuccin SDDM theme if available
+if command -v yay &> /dev/null; then
+    print_status "Installing Catppuccin SDDM theme..."
+    yay -S --needed --noconfirm sddm-catppuccin-git || print_warning "Failed to install Catppuccin SDDM theme"
+    
+    # Configure SDDM to use Catppuccin theme
+    sudo mkdir -p /etc/sddm.conf.d
+    sudo tee /etc/sddm.conf.d/theme.conf > /dev/null << EOF
+[Theme]
+Current=catppuccin-mocha
+CursorTheme=catppuccin-mocha-dark-cursors
+EOF
+else
+    print_warning "yay not available - SDDM theme will use default"
+fi
+
+# Create SDDM configuration for auto-login (optional - commented out for security)
+# Uncomment the following lines if you want auto-login
+# sudo tee /etc/sddm.conf.d/autologin.conf > /dev/null << EOF
+# [Autologin]
+# User=$USER
+# Session=i3
+# EOF
+
+print_status "SDDM configured! You can now log out and use the graphical login manager."
 
 # Install AUR packages if yay is available
 if command -v yay &> /dev/null; then
@@ -264,11 +340,12 @@ echo "   • Smooth animations optimized for 180Hz"
 echo "   • Consistent theming across all applications"
 echo ""
 echo "📚 Next Steps:"
-echo "   1. Log out and select i3 from your display manager"
-echo "   2. Your display will be set to 2560x1440@180Hz automatically"
-echo "   3. Explore the productivity menu: Super+Ctrl+O"
-echo "   4. Set up your Git credentials if needed"
-echo "   5. Install additional tools as needed"
+echo "   1. Reboot your system to start SDDM display manager"
+echo "   2. Log in and select i3 from the session menu"
+echo "   3. Your display will be set to 2560x1440@180Hz automatically"
+echo "   4. Explore the productivity menu: Super+Ctrl+O"
+echo "   5. Set up your Git credentials if needed"
+echo "   6. Install additional tools as needed"
 echo ""
 print_status "YOUR PRODUCTIVITY SHOULD NOW BE TRIPLED! 🚀"
 echo ""
