@@ -21,7 +21,9 @@ exec_always --no-startup-id picom --config ~/.config/picom/picom.conf --no-fadin
 exec --no-startup-id feh --bg-scale ~/.config/catppuccin-wallpaper.png
 exec --no-startup-id xrdb -merge ~/.Xresources
 exec_always --no-startup-id setxkbmap -option caps:escape
-exec --no-startup-id xset r rate 100 25  # EXTREME key repeat for speed demons
+# FIXED: Previous setting was too aggressive and caused double typing
+# exec --no-startup-id xset r rate 100 25  # EXTREME key repeat for speed demons - CAUSED DOUBLE TYPING
+exec --no-startup-id xset r rate 300 35  # Fast but reasonable key repeat (300ms delay, ~28 repeats/sec)
 exec --no-startup-id xrandr --output DP-1 --mode 2560x1440 --rate 180 --primary
 
 # RTX 4060 NUCLEAR PERFORMANCE MODE
