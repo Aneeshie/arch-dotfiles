@@ -269,18 +269,18 @@ if [ ! -d "$HOME/.oh-my-zsh" ]; then
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 fi
 
-# Install Catppuccin theme for zsh
-if [ ! -d "$HOME/.oh-my-zsh/custom/themes/catppuccin" ]; then
-    print_status "Installing Catppuccin zsh theme..."
-    git clone https://github.com/catppuccin/zsh.git $HOME/.oh-my-zsh/custom/themes/catppuccin
+# Install Powerlevel10k theme (better alternative that supports Catppuccin colors)
+if [ ! -d "$HOME/.oh-my-zsh/custom/themes/powerlevel10k" ]; then
+    print_status "Installing Powerlevel10k theme..."
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $HOME/.oh-my-zsh/custom/themes/powerlevel10k
 fi
 
-# Configure zshrc with Catppuccin theme
+# Configure zshrc with Powerlevel10k theme and Catppuccin colors
 if [ -f "$HOME/.zshrc" ]; then
-    print_status "Configuring zsh with Catppuccin theme..."
-    sed -i 's/ZSH_THEME=".*"/ZSH_THEME="agnoster"/' ~/.zshrc
+    print_status "Configuring zsh with Powerlevel10k + Catppuccin theme..."
+    sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' ~/.zshrc
     
-    # Add Catppuccin colors to zshrc
+    # Add Catppuccin colors and Powerlevel10k config
     if ! grep -q "# Catppuccin Mocha colors" ~/.zshrc; then
         cat >> ~/.zshrc << 'EOF'
 
@@ -288,18 +288,88 @@ if [ -f "$HOME/.zshrc" ]; then
 export LS_COLORS="di=1;34:ln=1;36:so=1;35:pi=1;33:ex=1;32:bd=1;33:cd=1;33:su=1;31:sg=1;31:tw=1;34:ow=1;34"
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 
-# Catppuccin prompt colors
-CATCOLOR_PURPLE="%F{#cba6f7}"
-CATCOLOR_PINK="%F{#f5c2e7}"
-CATCOLOR_TEXT="%F{#cdd6f4}"
-CATCOLOR_GREEN="%F{#a6e3a1}"
-CATCOLOR_BLUE="%F{#89b4fa}"
-RESET="%f"
-
-# Custom Catppuccin prompt
-PROMPT="${CATCOLOR_PURPLE}┌─[${CATCOLOR_PINK}%n${CATCOLOR_TEXT}@${CATCOLOR_BLUE}%m${CATCOLOR_PURPLE}]─[${CATCOLOR_GREEN}%~${CATCOLOR_PURPLE}]
-└─${CATCOLOR_TEXT}$ ${RESET}"
+# Powerlevel10k instant prompt (should stay close to the top of ~/.zshrc)
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
 EOF
+    fi
+    
+    # Create Powerlevel10k config with Catppuccin colors
+    print_status "Creating Powerlevel10k configuration with Catppuccin colors..."
+    cat > ~/.p10k.zsh << 'EOF'
+# Powerlevel10k configuration with Catppuccin Mocha colors
+if [[ -o 'aliases' ]]; then
+  'builtin' 'unsetopt' 'aliases'
+  local p10k_lean_restore_aliases=1
+else
+  local p10k_lean_restore_aliases=0
+fi
+
+() {
+  emulate -L zsh -o extended_glob
+
+  # Catppuccin Mocha color palette
+  local rosewater='#f5e0dc'
+  local flamingo='#f2cdcd' 
+  local pink='#f5c2e7'
+  local mauve='#cba6f7'
+  local red='#f38ba8'
+  local maroon='#eba0ac'
+  local peach='#fab387'
+  local yellow='#f9e2af'
+  local green='#a6e3a1'
+  local teal='#94e2d5'
+  local sky='#89dceb'
+  local sapphire='#74c7ec'
+  local blue='#89b4fa'
+  local lavender='#b4befe'
+  local text='#cdd6f4'
+  local subtext1='#bac2de'
+  local subtext0='#a6adc8'
+  local overlay2='#9399b2'
+  local overlay1='#7f849c'
+  local overlay0='#6c7086'
+  local surface2='#585b70'
+  local surface1='#45475a'
+  local surface0='#313244'
+  local base='#1e1e2e'
+  local mantle='#181825'
+  local crust='#11111b'
+
+  # Simple productive prompt
+  typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
+    dir                     # current directory
+    vcs                     # git status
+    prompt_char             # prompt symbol
+  )
+  
+  typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
+    status                  # exit code of the last command
+    command_execution_time  # duration of the last command
+    time                    # current time
+  )
+
+  # Catppuccin colors
+  typeset -g POWERLEVEL9K_DIR_FOREGROUND=$text
+  typeset -g POWERLEVEL9K_DIR_BACKGROUND=$surface0
+  typeset -g POWERLEVEL9K_VCS_CLEAN_FOREGROUND=$green
+  typeset -g POWERLEVEL9K_VCS_MODIFIED_FOREGROUND=$yellow
+  typeset -g POWERLEVEL9K_VCS_UNTRACKED_FOREGROUND=$red
+  typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_VIINS_FOREGROUND=$mauve
+  typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_VIINS_FOREGROUND=$red
+  typeset -g POWERLEVEL9K_TIME_FOREGROUND=$blue
+  typeset -g POWERLEVEL9K_STATUS_OK_FOREGROUND=$green
+  typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND=$red
+}
+
+(( ! p10k_lean_restore_aliases )) || setopt aliases
+'builtin' 'test' -z "${funcfiletrace[-1]%:*}" && 'builtin' 'source' "${funcfiletrace[-1]%:*}"
+EOF
+    
+    # Add p10k config to zshrc
+    if ! grep -q "p10k.zsh" ~/.zshrc; then
+        echo -e "\n# To customize prompt, run \`p10k configure\` or edit ~/.p10k.zsh.\n[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh" >> ~/.zshrc
     fi
 fi
 
