@@ -1,4 +1,4 @@
-theme = GruvboxDark
+theme = catppuccin-mocha
 font-family = Meslo LGS Nerd Font Mono
 font-size = 16
 background-opacity = 0.95

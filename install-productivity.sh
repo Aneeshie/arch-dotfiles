@@ -263,6 +263,46 @@ fi
 
 print_header "Configuring system settings..."
 
+# Install and configure Oh My Zsh with Catppuccin theme
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    print_status "Installing Oh My Zsh..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+fi
+
+# Install Catppuccin theme for zsh
+if [ ! -d "$HOME/.oh-my-zsh/custom/themes/catppuccin" ]; then
+    print_status "Installing Catppuccin zsh theme..."
+    git clone https://github.com/catppuccin/zsh.git $HOME/.oh-my-zsh/custom/themes/catppuccin
+fi
+
+# Configure zshrc with Catppuccin theme
+if [ -f "$HOME/.zshrc" ]; then
+    print_status "Configuring zsh with Catppuccin theme..."
+    sed -i 's/ZSH_THEME=".*"/ZSH_THEME="agnoster"/' ~/.zshrc
+    
+    # Add Catppuccin colors to zshrc
+    if ! grep -q "# Catppuccin Mocha colors" ~/.zshrc; then
+        cat >> ~/.zshrc << 'EOF'
+
+# Catppuccin Mocha colors
+export LS_COLORS="di=1;34:ln=1;36:so=1;35:pi=1;33:ex=1;32:bd=1;33:cd=1;33:su=1;31:sg=1;31:tw=1;34:ow=1;34"
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+
+# Catppuccin prompt colors
+CATCOLOR_PURPLE="%F{#cba6f7}"
+CATCOLOR_PINK="%F{#f5c2e7}"
+CATCOLOR_TEXT="%F{#cdd6f4}"
+CATCOLOR_GREEN="%F{#a6e3a1}"
+CATCOLOR_BLUE="%F{#89b4fa}"
+RESET="%f"
+
+# Custom Catppuccin prompt
+PROMPT="${CATCOLOR_PURPLE}┌─[${CATCOLOR_PINK}%n${CATCOLOR_TEXT}@${CATCOLOR_BLUE}%m${CATCOLOR_PURPLE}]─[${CATCOLOR_GREEN}%~${CATCOLOR_PURPLE}]
+└─${CATCOLOR_TEXT}$ ${RESET}"
+EOF
+    fi
+fi
+
 # Add ~/.local/bin to PATH
 if ! grep -q "~/.local/bin" ~/.bashrc 2>/dev/null; then
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
@@ -270,6 +310,41 @@ fi
 
 if ! grep -q "~/.local/bin" ~/.zshrc 2>/dev/null; then
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+fi
+
+# Fix refresh rate and display configuration
+print_status "Configuring display settings for 180Hz..."
+# Create xprofile for display settings that persist
+cat > ~/.xprofile << 'EOF'
+#!/bin/bash
+# Set display to 2560x1440@180Hz on startup
+xrandr --output DP-1 --mode 2560x1440 --rate 180 --primary 2>/dev/null || \
+xrandr --output HDMI-1 --mode 2560x1440 --rate 180 --primary 2>/dev/null || \
+xrandr --output eDP-1 --mode 2560x1440 --rate 180 --primary 2>/dev/null || \
+print_warning "Could not set 180Hz - check your display connection"
+EOF
+chmod +x ~/.xprofile
+
+# Also add to i3 config if not already there
+if ! grep -q "xrandr.*180" ~/.config/i3/config 2>/dev/null; then
+    print_status "Adding 180Hz setting to i3 config..."
+    sed -i '/exec --no-startup-id xrandr/c\exec --no-startup-id ~/.xprofile' ~/.config/i3/config
+fi
+
+# Fix workspace assignments - make them more specific
+print_status "Fixing workspace assignments..."
+if [ -f ~/.config/i3/config ]; then
+    # Update i3 config with more specific class matching
+    sed -i 's/assign \[class="zen-browser"\]/assign [class="zen-browser" instance="zen-browser"]/' ~/.config/i3/config
+    sed -i 's/assign \[class="firefox"\]/assign [class="Firefox" instance="Navigator"]/' ~/.config/i3/config
+    sed -i 's/assign \[class="Code"\]/assign [class="code-oss" instance="code-oss"]/' ~/.config/i3/config
+    sed -i 's/assign \[class="code-oss"\]/assign [class="code-oss" instance="code-oss"]/' ~/.config/i3/config
+    sed -i 's/assign \[class="Nautilus"\]/assign [class="org.gnome.Nautilus" instance="org.gnome.Nautilus"]/' ~/.config/i3/config
+    
+    # Add more specific terminal assignments
+    if ! grep -q "assign.*ghostty.*Terminal" ~/.config/i3/config; then
+        sed -i '/set $ws1/a assign [class="ghostty" instance="ghostty"] $ws1' ~/.config/i3/config
+    fi
 fi
 
 # Set zsh as default shell
