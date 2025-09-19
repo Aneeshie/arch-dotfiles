@@ -197,25 +197,37 @@ done
 
 print_header "Installing HYPRLAND-DESTROYING configuration files..."
 
-# Main configs (SPEED OPTIMIZED)
-cp -r i3 ~/.config/
-cp -r polybar ~/.config/
-cp -r rofi ~/.config/
-cp -r picom ~/.config/
-cp -r ranger ~/.config/
-cp -r scripts ~/.config/
+# Main configs (SPEED OPTIMIZED) - with existence checks
+for config_dir in i3 polybar rofi picom ranger scripts; do
+    if [ -d "$config_dir" ]; then
+        print_status "Installing $config_dir configuration..."
+        cp -r "$config_dir" ~/.config/
+    else
+        print_warning "$config_dir directory not found, skipping..."
+    fi
+done
 
 # Make all scripts executable for maximum speed
-chmod +x ~/.config/scripts/*.sh
+if [ -d ~/.config/scripts ]; then
+    chmod +x ~/.config/scripts/*.sh 2>/dev/null || print_warning "No scripts found to make executable"
+fi
 
 # Terminal configs
 if [ -d "ghostty" ]; then
+    print_status "Installing Ghostty configuration..."
     mkdir -p ~/.config/ghostty
     cp -r ghostty/* ~/.config/ghostty/
+else
+    print_warning "Ghostty config directory not found, skipping..."
 fi
 
 # Tmux
-cp .tmux.conf ~/
+if [ -f ".tmux.conf" ]; then
+    print_status "Installing Tmux configuration..."
+    cp .tmux.conf ~/
+else
+    print_warning "Tmux config file not found, skipping..."
+fi
 
 print_header "Setting up wallpaper..."
 # Download Catppuccin wallpaper if not exists
@@ -234,13 +246,19 @@ find ~/.config -name "*.sh" -type f -exec chmod +x {} \;
 
 print_header "Installing productivity scripts..."
 if [ -f "rofi/productivity.sh" ]; then
+    print_status "Installing productivity script..."
     cp rofi/productivity.sh ~/.local/bin/
     chmod +x ~/.local/bin/productivity.sh
+else
+    print_warning "rofi/productivity.sh not found, skipping..."
 fi
 
 if [ -f "rofi/powermenu.sh" ]; then
+    print_status "Installing power menu script..."
     cp rofi/powermenu.sh ~/.local/bin/
     chmod +x ~/.local/bin/powermenu.sh
+else
+    print_warning "rofi/powermenu.sh not found, skipping..."
 fi
 
 print_header "Configuring system settings..."
