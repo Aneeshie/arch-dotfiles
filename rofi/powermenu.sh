@@ -3,8 +3,7 @@
 # Rofi Power Menu with Catppuccin Theme
 # Keyboard-accessible system controls
 
-theme="~/.config/rofi/catppuccin-mocha.rasi"
-
+theme="$HOME/.config/rofi/catppuccin-mocha.rasi"
 # Options with icons
 lock="  Lock"
 logout="  Logout"

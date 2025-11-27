@@ -3,8 +3,7 @@
 # Rofi Productivity Menu
 # Quick access to development and productivity tools
 
-theme="~/.config/rofi/catppuccin-mocha.rasi"
-
+theme="$HOME/.config/rofi/catppuccin-mocha.rasi"
 # Productivity tools with icons
 file_manager="  File Manager"
 lazy_docker="  Lazy Docker"

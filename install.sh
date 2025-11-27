@@ -25,27 +25,22 @@ if ! command -v pacman &> /dev/null; then
     exit 1
 fi
 
-# Check for sudo
-if ! sudo -n true 2>/dev/null; then
-    error "Please ensure you have sudo privileges."
-    exit 1
-fi
 
 # 1. Install Essentials
 info "Installing essential packages..."
 sudo pacman -S --needed --noconfirm \
     base-devel git wget curl unzip \
     xorg-server xorg-xinit xorg-xrandr \
-    i3-wm polybar rofi picom dunst \
+    i3-wm i3status i3lock dmenu feh polybar rofi picom dunst \
     feh maim flameshot xclip \
     ttf-jetbrains-mono-nerd \
     zsh neovim tmux \
     networkmanager network-manager-applet \
-    pulseaudio pulseaudio-alsa pavucontrol \
+    pavucontrol \
     brightnessctl bluez bluez-utils blueman \
     firefox nautilus discord i3lock lxappearance \
     ranger htop lazygit copyq mesa-utils \
-    nvidia-settings code
+    nvidia-settings code iftop iotop
 
 # 2. Install Yay (AUR Helper)
 if ! command -v yay &> /dev/null; then
@@ -112,5 +107,10 @@ if [ ! -d "$HOME/.oh-my-zsh" ]; then
     info "Installing Oh My Zsh..."
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 fi
+
+# 8. Enable Services
+info "Enabling services..."
+sudo systemctl enable sddm
+sudo systemctl enable NetworkManager
 
 success "Installation Complete! Please reboot your system."
