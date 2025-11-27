@@ -41,7 +41,7 @@ sudo pacman -S --needed --noconfirm \
     ttf-jetbrains-mono-nerd \
     zsh neovim tmux \
     networkmanager network-manager-applet \
-    pavucontrol \
+    pulseaudio pulseaudio-alsa pavucontrol \
     brightnessctl bluez bluez-utils blueman \
     firefox nautilus discord i3lock lxappearance \
     ranger htop lazygit copyq mesa-utils \
@@ -61,8 +61,8 @@ fi
 # 3. Install AUR Packages
 info "Installing AUR packages (Ghostty, Zen Browser, Themes)..."
 yay -S --needed --noconfirm \
-    ghostty-git \
     zen-browser-bin \
+    ghostty \
     catppuccin-gtk-theme-mocha \
     papirus-icon-theme \
     sddm-catppuccin-git \
