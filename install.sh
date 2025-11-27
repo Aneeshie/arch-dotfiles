@@ -41,8 +41,11 @@ sudo pacman -S --needed --noconfirm \
     ttf-jetbrains-mono-nerd \
     zsh neovim tmux \
     networkmanager network-manager-applet \
-    pulseaudio pulseaudio-alsa pavucontrol \
-    brightnessctl bluez bluez-utils blueman
+    pavucontrol \
+    brightnessctl bluez bluez-utils blueman \
+    firefox nautilus discord i3lock lxappearance \
+    ranger htop lazygit copyq mesa-utils \
+    nvidia-settings code
 
 # 2. Install Yay (AUR Helper)
 if ! command -v yay &> /dev/null; then
@@ -63,7 +66,9 @@ yay -S --needed --noconfirm \
     catppuccin-gtk-theme-mocha \
     papirus-icon-theme \
     sddm-catppuccin-git \
-    rofi-calc
+    rofi-calc \
+    lazydocker \
+    spotify
 
 # 4. Install Configs (SAFELY)
 info "Installing configurations..."
