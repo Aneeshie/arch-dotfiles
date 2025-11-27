@@ -1,83 +1,111 @@
 #!/bin/bash
 
+# ==============================================================================
+#  AESTHETIC DOTFILES INSTALLER
+#  SAFE • ROBUST • STUNNING
+# ==============================================================================
+
 set -e
-set -o pipefail
 
-GREEN="\e[32m"
-RED="\e[31m"
-RESET="\e[0m"
+# Colors
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
 
-info() {
-  echo -e "${GREEN}[INFO]${RESET} $1"
-}
-error() {
-  echo -e "${RED}[ERROR]${RESET} $1"
-}
+info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-info "Installing base packages..."
-sudo pacman -Syu --noconfirm
-
-info "Installing Xorg (display server)..."
-sudo pacman -S --noconfirm xorg xorg-xinit
-
-
-info "Checking if i3 is installed..."
-if ! command -v i3 >/dev/null 2>&1; then
-  info "Installing i3..."
-  sudo pacman -S --noconfirm i3-wm
-else
-  info "i3 is already installed."
+# Check for Arch Linux
+if ! command -v pacman &> /dev/null; then
+    error "This script requires Arch Linux."
+    exit 1
 fi
 
-info "Setting up .xinitrc to start i3..."
-echo "exec i3" > "$HOME/.xinitrc"
-
-if ! command -v yay >/dev/null 2>&1; then
-  info "Installing yay (AUR helper)..."
-  sudo pacman -S --noconfirm --needed git base-devel
-  git clone https://aur.archlinux.org/yay.git /tmp/yay
-  cd /tmp/yay && makepkg -si --noconfirm
-  cd ~
-else
-  info "yay is already installed."
+# Check for sudo
+if ! sudo -n true 2>/dev/null; then
+    error "Please ensure you have sudo privileges."
+    exit 1
 fi
 
-info "Installing ghostty, polybar, rofi, picom, neovim, tmux, zsh..."
-yay -S --noconfirm ghostty polybar rofi picom neovim tmux zsh xclip
+# 1. Install Essentials
+info "Installing essential packages..."
+sudo pacman -S --needed --noconfirm \
+    base-devel git wget curl unzip \
+    xorg-server xorg-xinit xorg-xrandr \
+    i3-wm polybar rofi picom dunst \
+    feh maim flameshot xclip \
+    ttf-jetbrains-mono-nerd \
+    zsh neovim tmux \
+    networkmanager network-manager-applet \
+    pulseaudio pulseaudio-alsa pavucontrol \
+    brightnessctl bluez bluez-utils blueman
 
+# 2. Install Yay (AUR Helper)
+if ! command -v yay &> /dev/null; then
+    info "Installing yay..."
+    git clone https://aur.archlinux.org/yay.git /tmp/yay
+    cd /tmp/yay
+    makepkg -si --noconfirm
+    cd -
+else
+    success "Yay is already installed."
+fi
+
+# 3. Install AUR Packages
+info "Installing AUR packages (Ghostty, Zen Browser, Themes)..."
+yay -S --needed --noconfirm \
+    ghostty-git \
+    zen-browser-bin \
+    catppuccin-gtk-theme-mocha \
+    papirus-icon-theme \
+    sddm-catppuccin-git \
+    rofi-calc
+
+# 4. Install Configs (SAFELY)
+info "Installing configurations..."
+CONFIG_DIR="$HOME/.config"
+mkdir -p "$CONFIG_DIR"
+
+# List of configs to install
+CONFIGS=("i3" "polybar" "rofi" "picom" "dunst" "ghostty")
+
+for cfg in "${CONFIGS[@]}"; do
+    if [ -d "$cfg" ]; then
+        TARGET="$CONFIG_DIR/$cfg"
+        if [ -d "$TARGET" ]; then
+            BACKUP="$TARGET.backup.$(date +%s)"
+            warn "Backing up existing $cfg to $BACKUP"
+            mv "$TARGET" "$BACKUP"
+        fi
+        info "Installing $cfg config..."
+        cp -r "$cfg" "$CONFIG_DIR/"
+    else
+        warn "Config directory '$cfg' not found in current folder, skipping."
+    fi
+done
+
+# 5. Scripts
+info "Installing scripts..."
+mkdir -p "$HOME/.local/bin"
+if [ -d "scripts" ]; then
+    cp -r scripts/* "$HOME/.local/bin/"
+    chmod +x "$HOME/.local/bin/"*
+fi
+
+# 6. Wallpaper
+if [ ! -f "$CONFIG_DIR/catppuccin-wallpaper.png" ]; then
+    info "Downloading wallpaper..."
+    wget -q "https://raw.githubusercontent.com/catppuccin/wallpapers/main/landscapes/shaded_landscape.png" -O "$CONFIG_DIR/catppuccin-wallpaper.png"
+fi
+
+# 7. Shell Setup (Oh My Zsh)
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
-  info "Installing oh-my-zsh..."
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-else
-  info "oh-my-zsh already installed."
+    info "Installing Oh My Zsh..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 fi
 
-DOTFILES_REPO="https://github.com/Aneeshie/arch-dotfiles.git"
-CLONE_PATH="$HOME/.config"
-BACKUP_PATH="$HOME/.config.backup.$(date +%s)"
-
-if [ -d "$CLONE_PATH" ]; then
-  info "Backing up existing .config to $BACKUP_PATH"
-  mv "$CLONE_PATH" "$BACKUP_PATH"
-fi
-
-info "Cloning your repo into ~/.config..."
-git clone "$DOTFILES_REPO" "$CLONE_PATH"
-
-if [ -f "$HOME/.tmux.conf" ]; then
-  TMUX_BACKUP="$HOME/.tmux.conf.backup.$(date +%s)"
-  info "Backing up existing .tmux.conf to $TMUX_BACKUP"
-  mv "$HOME/.tmux.conf" "$TMUX_BACKUP"
-fi
-
-if [ -f "$CLONE_PATH/.tmux.conf" ]; then
-  info "Copying .tmux.conf to home directory"
-  cp "$CLONE_PATH/.tmux.conf" "$HOME/.tmux.conf"
-
-  info "Copying .tmux.conf to /root"
-  sudo cp "$CLONE_PATH/.tmux.conf" /root/.tmux.conf
-else
-  error ".tmux.conf not found in $CLONE_PATH/"
-fi
-
-info "Done! Enjoyyyyy"
+success "Installation Complete! Please reboot your system."
